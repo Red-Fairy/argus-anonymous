@@ -198,6 +198,51 @@
   </style>
 </head>
 
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="Beyond the Frame: Generating 360° Panoramic Videos from Perspective Video">
+  <meta property="og:title" content="Beyond the Frame: Generating 360° Panoramic Videos from Perspective Videos" />
+  <meta property="og:description"
+    content="Beyond the Frame: Generating 360° Panoramic Videos from Perspective Videos" />
+  <meta property="og:url" content="./index.html" />
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <meta property="og:image" content="static/image/banner.jpg" />
+  <meta property="og:image:width" content="2012" />
+  <meta property="og:image:height" content="1462" />
+
+
+  <meta name="twitter:title" content="Beyond the Frame: Generating 360° Panoramic Videos from Perspective Video">
+  <meta name="twitter:description" content="Beyond the Frame: Generating 360° Panoramic Videos from Perspective Video">
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+  <meta name="twitter:image" content="static/images/banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="360° Panoramic Video Generation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>Beyond the Frame: Generating 360° Panoramic Videos from Perspective Videos</title>
+  <link rel="icon" type="image/x-icon" href="static/images/Argus.jpg">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+</head>
+
+
 <body>
   <section class="hero is-small">
     <div class="hero-body">
@@ -664,8 +709,28 @@
           }
         }
       }
-    } catch (error) {
-      console.error('Error attempting to pause iframe:', error);
+      
+      // Fallback: Try looking for SVG paths matching the pause icon
+      const svgPaths = iframeDoc.querySelectorAll('path[d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z"]');
+      if (svgPaths.length > 0) {
+        let element = svgPaths[0];
+        while (element && element.tagName !== 'BUTTON') {
+          element = element.parentElement;
+        }
+        
+        if (element) {
+          console.log('Found pause button via SVG path:', element);
+          element.click();
+          return;
+        }
+      }
+      
+      // Last resort: Try keyboard shortcut
+      const event = new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32 });
+      iframeDoc.dispatchEvent(event);
+      
+    } catch (e) {
+      console.error('Error pausing video:', e, iframe.src);
     }
   }
   
