@@ -898,28 +898,28 @@
         </div>
         <div class="container" style="width: 90%;">
           <div id="results-carousel" class="carousel results-carousel">
-            <div class="item item-video1">
+            <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0003.viser"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0003.viser&autoPlay=false"></iframe>
               </div>
             </div>
-            <div class="item item-video2">
+            <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0000.viser"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0000.viser&autoPlay=false"></iframe>
               </div>
             </div>
-            <div class="item item-video3">
+            <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0008.viser"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0008.viser&autoPlay=false"></iframe>
               </div>
             </div>
-            <div class="item item-video4">
+            <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0045.viser"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0045.viser&autoPlay=false"></iframe>
               </div>
             </div>
           </div>
@@ -1814,6 +1814,40 @@
   document.addEventListener('DOMContentLoaded', function () {
     initializeVideoControls();
     debug.log('Page fully loaded and initialized');
+  });
+
+  function attemptToPause(iframe) {
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      
+      // Look for elements related to the pause button
+      const playPauseElements = iframeDoc.querySelectorAll('[class*="play"],[class*="pause"]');
+      if (playPauseElements.length > 0) {
+        // Look for the specific play button
+        for (const el of playPauseElements) {
+          if (el.tagName === 'BUTTON') {
+            console.log('Clicking pause button in iframe:', iframe.src);
+            el.click();
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error attempting to pause iframe:', error);
+    }
+  }
+  
+  // Process all iframes when they load
+  document.querySelectorAll('.viser-demo').forEach(iframe => {
+    iframe.addEventListener('load', function() {
+      // Wait for the player to initialize
+      setTimeout(() => attemptToPause(this), 1500);
+    });
+    
+    // If iframe is already loaded, try to pause it
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      setTimeout(() => attemptToPause(iframe), 1500);
+    }
   });
 
   // Initial debug messages
