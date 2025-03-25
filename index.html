@@ -22,7 +22,7 @@
       cursor: pointer;
     }
 
-    iframe {
+    .viser-demo {
       width: 80%;
       height: 500px;
       margin: 0 auto;
@@ -898,10 +898,10 @@
           </p>
         </div>
         <br>
-        <div class="container" style="width: 90%;">
+        <div class="container" style="width: 80%;">
           <div class="item viser-demo">
             <div style="display: flex; justify-content: center;">
-              <img src="static/viser/0003.gif" alt="MegaSaM Demo" style="width: 100%; height: 100%;">
+              <video src="static/viser/0003.mp4" autoplay controls muted loop loading="lazy" preload="metadata"></video>
             </div>
           </div>
         </div>
@@ -909,7 +909,7 @@
     </div>
   </section>
 
-  <section class="hero is-small">
+  <section class="hero is-small is-light">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Analysis: Using Generated Videos as Input</h2>
@@ -946,7 +946,7 @@
 
 
   <!-- Stabilizaiton -->
-  <section class="hero is-small is-light">
+  <section class="hero is-small">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Application: Video Stabilization</h2>
@@ -1077,7 +1077,7 @@
   </section>
 
   <!-- Tracking -->
-  <section class="hero is-small">
+  <section class="hero is-small is-light">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Application: Camera View Direction Control</h2>
@@ -1204,7 +1204,7 @@
   </section>
 
   <!-- Relighting -->
-  <section class="hero is-small is-light">
+  <section class="hero is-small">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Application: Dynamic Environment Map for Object Relighting</h2>
@@ -1235,7 +1235,7 @@
       </div>
   </section>
 
-  <section class="hero is-small">
+  <section class="hero is-small is-light">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Application: Interactive Visual Question Answering</h2>
@@ -1255,7 +1255,7 @@
     </div>
   </section>
 
-  <section class="hero is-small is-light">
+  <section class="hero is-small">
     <div class="hero-body">
       <div class="container">
         <h2 class="title is-3">Dataset</h2>
@@ -1795,40 +1795,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     initializeVideoControls();
     debug.log('Page fully loaded and initialized');
-  });
-
-  function attemptToPause(iframe) {
-    try {
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-      // Look for elements related to the pause button
-      const playPauseElements = iframeDoc.querySelectorAll('[class*="play"],[class*="pause"]');
-      if (playPauseElements.length > 0) {
-        // Look for the specific play button
-        for (const el of playPauseElements) {
-          if (el.tagName === 'BUTTON') {
-            console.log('Clicking pause button in iframe:', iframe.src);
-            el.click();
-            return;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error attempting to pause iframe:', error);
-    }
-  }
-
-  // Process all iframes when they load
-  document.querySelectorAll('.viser-demo').forEach(iframe => {
-    iframe.addEventListener('load', function () {
-      // Wait for the player to initialize
-      setTimeout(() => attemptToPause(this), 1500);
-    });
-
-    // If iframe is already loaded, try to pause it
-    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-      setTimeout(() => attemptToPause(iframe), 1500);
-    }
   });
 
   // Initial debug messages

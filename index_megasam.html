@@ -195,6 +195,19 @@
       z-index: 1002;
       display: none;
     }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      z-index: 10;
+      /* Uncomment below if you want to debug the overlay */
+      /* background: rgba(255,0,0,0.1); */
+    }
+
   </style>
 </head>
 
@@ -260,25 +273,25 @@
             <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0003.viser&autoPlay=false"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0003.viser"></iframe>
               </div>
             </div>
             <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0000.viser&autoPlay=false"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0000.viser"></iframe>
               </div>
             </div>
             <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0008.viser&autoPlay=false"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0008.viser"></iframe>
               </div>
             </div>
             <div class="item viser-demo">
               <div style="display: flex; justify-content: center;">
                 <iframe
-                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0045.viser&autoPlay=false"></iframe>
+                  src="https://red-fairy.github.io/argus/build/?playbackPath=https://red-fairy.github.io/argus/static/viser/0045.viser"></iframe>
               </div>
             </div>
           </div>
@@ -286,469 +299,6 @@
       </div>
     </div>
   </section>
-
 </body>
-
-<!-- <div id="debugPanel"></div> -->
-
-<div id="videoModal" class="modal">
-  <span id="closeModal" class="close-btn">&times;</span>
-  <div id="loader" class="loader"></div>
-  <div id="video360Container"></div>
-  <div class="video-controls">
-    <button id="playPauseBtn" class="control-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z"></path>
-      </svg> Play
-    </button>
-    <button id="muteBtn" class="control-btn">
-      <!-- <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 9v6h4l5 5V4L7 9H3z"></path>
-        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"></path>
-      </svg> Mute -->
-    </button>
-    <button id="resetViewBtn" class="control-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z">
-        </path>
-        <path
-          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z">
-        </path>
-      </svg> Reset View
-    </button>
-  </div>
-</div>
-
-<!-- Replace the existing script with this updated one -->
-<script>
-  // Debug function
-  const debug = {
-    panel: document.getElementById('debugPanel'),
-    log: function (message) {
-      if (this.panel) {
-        const time = new Date().toLocaleTimeString();
-        this.panel.innerHTML += `<div>[${time}] ${message}</div>`;
-        console.log(`[DEBUG] ${message}`);
-      }
-    },
-    error: function (message) {
-      if (this.panel) {
-        const time = new Date().toLocaleTimeString();
-        this.panel.innerHTML += `<div style="color:red">[${time}] ERROR: ${message}</div>`;
-        console.error(`[DEBUG ERROR] ${message}`);
-      }
-    },
-    show: function () {
-      if (this.panel) this.panel.style.display = 'block';
-    },
-    hide: function () {
-      if (this.panel) this.panel.style.display = 'none';
-    },
-    clear: function () {
-      if (this.panel) this.panel.innerHTML = '';
-    }
-  };
-
-  // Enable debug in development
-  const enableDebug = true;
-  if (enableDebug) debug.show();
-
-  // Get DOM elements
-  const videoModal = document.getElementById('videoModal');
-  const closeModal = document.getElementById('closeModal');
-  const video360Container = document.getElementById('video360Container');
-  const loader = document.getElementById('loader');
-  const playPauseBtn = document.getElementById('playPauseBtn');
-  const muteBtn = document.getElementById('muteBtn');
-  const resetViewBtn = document.getElementById('resetViewBtn');
-
-  // Three.js variables
-  let camera, scene, renderer;
-  let video, videoTexture, sphere;
-  let isPlaying = false;
-  // let isMuted = false;
-  let currentVideoItem = null;
-
-  // Find all videos in carousel
-  const carouselItems = document.querySelectorAll('#results-carousel .item');
-
-  // Helper function to convert a normal video URL to a 360 video URL
-  function getCorresponding360VideoUrl(regularVideoUrl) {
-    // Replace the path to point to the 360 version
-    // This assumes your 360 videos are in a folder named "360" in the same directory
-    return regularVideoUrl.replace(/\/([^\/]+)\.mp4$/, '/$1_360.mp4');
-  }
-
-  // Initialize carousel controls and 360 button functionality
-  function initializeVideoControls() {
-    carouselItems.forEach(item => {
-      const videoElement = item.querySelector('video');
-      const playBtn = item.querySelector('.play-360-button');
-
-      if (videoElement && playBtn) {
-        playBtn.addEventListener('click', function (e) {
-          e.stopPropagation(); // Prevent double triggering
-          debug.clear();
-          debug.log('360 button clicked for video: ' + videoElement.id);
-
-          // Store the current video item for later reference
-          currentVideoItem = item;
-
-          // Get source of the regular video
-          const regularVideoSrc = videoElement.querySelector('source').src;
-          const video360Src = getCorresponding360VideoUrl(regularVideoSrc);
-
-          // Open the 360 modal with the corresponding 360 video
-          open360Modal(video360Src);
-        });
-      }
-    });
-
-    debug.log('Video controls initialized');
-  }
-
-  // Initialize the 360 video player using Three.js
-  function init360Player(video_src_path) {
-    debug.log('Initializing 360 player with video: ' + video_src_path);
-
-    try {
-      // Clean up previous instance if it exists
-      if (renderer) {
-        video360Container.removeChild(renderer.domElement);
-        renderer.dispose();
-        renderer = null;
-      }
-
-      if (video) {
-        video.pause();
-        video.src = '';
-        video = null;
-      }
-
-      // Create video element
-      video = document.createElement('video');
-      video.crossOrigin = 'anonymous';
-      video.loop = true;
-      // video.muted = false;
-      video.src = video_src_path;
-      video.setAttribute('playsinline', '');
-
-      // Set up camera
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 0.01);
-
-      // Set up scene
-      scene = new THREE.Scene();
-
-      // Create video texture
-      videoTexture = new THREE.VideoTexture(video);
-
-      // Create sphere geometry (inside-out)
-      const geometry = new THREE.SphereGeometry(500, 60, 40);
-      geometry.scale(-1, 1, 1); // Flip inside out
-
-      // Create material with video texture
-      const material = new THREE.MeshBasicMaterial({ map: videoTexture });
-
-      // Create sphere mesh and add to scene
-      sphere = new THREE.Mesh(geometry, material);
-      scene.add(sphere);
-
-      // Set up renderer
-      renderer = new THREE.WebGLRenderer();
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      video360Container.appendChild(renderer.domElement);
-
-      // Add event listeners for mouse/touch movement
-      video360Container.addEventListener('mousedown', onPointerStart);
-      video360Container.addEventListener('touchstart', onPointerStart);
-      video360Container.addEventListener('mousemove', onPointerMove);
-      video360Container.addEventListener('touchmove', onPointerMove);
-      video360Container.addEventListener('mouseup', onPointerEnd);
-      video360Container.addEventListener('touchend', onPointerEnd);
-
-      // Add resize event listener
-      window.addEventListener('resize', onWindowResize);
-
-      debug.log('360 player initialized successfully');
-      return true;
-    } catch (error) {
-      debug.error(`Failed to initialize 360 player: ${error.message}`);
-      return false;
-    }
-  }
-
-  // Mouse/touch control variables
-  let isUserInteracting = false;
-  let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
-  let lon = 180, onPointerDownLon = 180;
-  let lat = 0, onPointerDownLat = 0;
-  let phi = 0, theta = 0;
-
-  function onPointerStart(event) {
-    isUserInteracting = true;
-
-    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
-    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
-
-    if (clientX === undefined || clientY === undefined) return;
-
-    onPointerDownPointerX = clientX;
-    onPointerDownPointerY = clientY;
-
-    onPointerDownLon = lon;
-    onPointerDownLat = lat;
-
-    event.preventDefault();
-  }
-
-  function onPointerMove(event) {
-    if (!isUserInteracting) return;
-
-    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
-    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
-
-    if (clientX === undefined || clientY === undefined) return;
-
-    lon = (onPointerDownPointerX - clientX) * 0.1 + onPointerDownLon;
-    lat = (clientY - onPointerDownPointerY) * 0.1 + onPointerDownLat;
-
-    event.preventDefault();
-  }
-
-  function onPointerEnd() {
-    isUserInteracting = false;
-  }
-
-  function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-
-  // Animation loop
-  function animate() {
-    requestAnimationFrame(animate);
-    update();
-  }
-
-  function update() {
-    // Update camera position based on lat/lon
-    lat = Math.max(-85, Math.min(85, lat));
-    phi = THREE.MathUtils.degToRad(90 - lat);
-    theta = THREE.MathUtils.degToRad(lon);
-
-    const x = 500 * Math.sin(phi) * Math.cos(theta);
-    const y = 500 * Math.cos(phi);
-    const z = 500 * Math.sin(phi) * Math.sin(theta);
-
-    camera.lookAt(x, y, z);
-
-    // Render the scene
-    renderer.render(scene, camera);
-  }
-
-  // Open the 360 video modal
-  function open360Modal(video_src_path) {
-    debug.log('Opening 360 modal with video: ' + video_src_path);
-
-    // Pause all regular videos
-    document.querySelectorAll('video').forEach(v => v.pause());
-
-    // Show the modal and loader
-    videoModal.style.display = 'block';
-    loader.style.display = 'block';
-
-    // Initialize the 360 player
-    const initSuccess = init360Player(video_src_path);
-
-    if (!initSuccess) {
-      debug.error('Failed to open 360 modal due to initialization error');
-      close360Modal();
-      alert('Sorry, there was an error loading the 360° video. Please try again later.');
-      return;
-    }
-
-    // Start the animation loop
-    animate();
-
-    // Play the 360 video
-    video.play()
-      .then(() => {
-        debug.log('360 video started playing');
-        isPlaying = true;
-        updatePlayPauseButton();
-        loader.style.display = 'none';
-      })
-      .catch(error => {
-        debug.error(`Error playing 360 video: ${error.message}`);
-
-        // Check if it's an autoplay issue and prompt user
-        if (error.name === 'NotAllowedError') {
-          loader.style.display = 'none';
-          alert('Please click the play button to start the 360° video');
-        } else {
-          close360Modal();
-          alert('Sorry, there was an error playing the 360° video. Please try again later.');
-        }
-      });
-  }
-
-  // Close the 360 video modal
-  function close360Modal() {
-    debug.log('Closing 360 modal');
-
-    // Hide the modal
-    videoModal.style.display = 'none';
-
-    // Pause the 360 video
-    if (video) video.pause();
-    isPlaying = false;
-
-    // Resume the original video if needed
-    if (currentVideoItem) {
-      const originalVideo = currentVideoItem.querySelector('video');
-      if (originalVideo) {
-        // Resume the original video
-        debug.log('Resuming original video playback');
-        originalVideo.play()
-          .catch(error => {
-            debug.error(`Error resuming original video: ${error.message}`);
-          });
-      }
-    }
-  }
-
-  // Toggle play/pause for the 360 video
-  function togglePlayPause() {
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-      isPlaying = false;
-    } else {
-      video.play()
-        .then(() => {
-          isPlaying = true;
-        })
-        .catch(error => {
-          debug.error(`Error playing video: ${error.message}`);
-        });
-    }
-
-    updatePlayPauseButton();
-  }
-
-  // Reset the camera view
-  function resetView() {
-    lon = 180;
-    lat = 0;
-  }
-
-  // Update the play/pause button state
-  function updatePlayPauseButton() {
-    playPauseBtn.innerHTML = isPlaying ?
-      `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
-      </svg> Pause` :
-      `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"></path>
-      </svg> Play`;
-  }
-
-  // Event Listeners
-  closeModal.addEventListener('click', function () {
-    debug.log('Close button clicked');
-    close360Modal();
-  });
-
-  playPauseBtn.addEventListener('click', function () {
-    debug.log('Play/Pause button clicked');
-    togglePlayPause();
-  });
-
-  // muteBtn.addEventListener('click', function () {
-  //   debug.log('Mute button clicked');
-  //   toggleMute();
-  // });
-
-  resetViewBtn.addEventListener('click', function () {
-    debug.log('Reset view button clicked');
-    resetView();
-  });
-
-  // Add escape key functionality to close the modal
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && videoModal.style.display === 'block') {
-      debug.log('Escape key pressed');
-      close360Modal();
-    }
-  });
-
-  // Initialize everything when the DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', function () {
-    initializeVideoControls();
-    debug.log('Page fully loaded and initialized');
-  });
-
-  function attemptToPause(iframe) {
-    try {
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      
-      // Look for elements related to the pause button
-      const playPauseElements = iframeDoc.querySelectorAll('[class*="play"],[class*="pause"]');
-      if (playPauseElements.length > 0) {
-        // Look for the specific play button
-        for (const el of playPauseElements) {
-          if (el.tagName === 'BUTTON') {
-            console.log('Clicking pause button in iframe:', iframe.src);
-            el.click();
-            return;
-          }
-        }
-      }
-      
-      // Fallback: Try looking for SVG paths matching the pause icon
-      const svgPaths = iframeDoc.querySelectorAll('path[d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z"]');
-      if (svgPaths.length > 0) {
-        let element = svgPaths[0];
-        while (element && element.tagName !== 'BUTTON') {
-          element = element.parentElement;
-        }
-        
-        if (element) {
-          console.log('Found pause button via SVG path:', element);
-          element.click();
-          return;
-        }
-      }
-      
-      // Last resort: Try keyboard shortcut
-      const event = new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32 });
-      iframeDoc.dispatchEvent(event);
-      
-    } catch (e) {
-      console.error('Error pausing video:', e, iframe.src);
-    }
-  }
-  
-  // Process all iframes when they load
-  document.querySelectorAll('.viser-demo').forEach(iframe => {
-    iframe.addEventListener('load', function() {
-      // Wait for the player to initialize
-      setTimeout(() => attemptToPause(this), 1500);
-    });
-    
-    // If iframe is already loaded, try to pause it
-    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-      setTimeout(() => attemptToPause(iframe), 1500);
-    }
-  });
-
-  // Initial debug messages
-  debug.log('Script loaded');
-</script>
 
 </html>
