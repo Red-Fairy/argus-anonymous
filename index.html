@@ -593,7 +593,7 @@
           <br>
           <div class="columns">
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" id="estimation1" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/dynamic-estimation/input.mp4" type="video/mp4">
               </video>
               <h2 class="subtitle has-text-centered">
@@ -601,7 +601,7 @@
               </h2>
             </div>
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" id="estimation2" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/dynamic-estimation/gt_detect.mp4" type="video/mp4">
               </video>
               <h2 class="subtitle has-text-centered">
@@ -609,7 +609,7 @@
               </h2>
             </div>
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" id="estimation3" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/dynamic-estimation/ours_detect.mp4" type="video/mp4">
               </video>
               <h2 class="subtitle has-text-centered">
@@ -662,7 +662,7 @@
         <br>
         <div style="width: 95%; margin: auto;">
           <div style="width: 80%; margin: auto;">
-            <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+            <video poster="" autoplay controls muted loop loading="lazy" preload="metadata">
               <source src="static/videos/generated-input/generated_stack.mp4" type="video/mp4">
             </video>
             <h2 class="subtitle has-text-centered">
@@ -1217,17 +1217,17 @@
           <br>
           <div class="columns">
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/environment-relighting/1.mp4" type="video/mp4">
               </video>
             </div>
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/environment-relighting/3.mp4" type="video/mp4">
               </video>
             </div>
             <div class="column is-one-third">
-              <video poster="" id="tree" autoplay controls muted loop loading="lazy" preload="metadata">
+              <video poster="" autoplay controls muted loop loading="lazy" preload="metadata">
                 <source src="static/videos/environment-relighting/2.mp4" type="video/mp4">
               </video>
             </div>
@@ -1408,6 +1408,75 @@
 
 <!-- Replace the existing script with this updated one -->
 <script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const video1 = document.getElementById('estimation1');
+    const video2 = document.getElementById('estimation2');
+    const video3 = document.getElementById('estimation3');
+    const videos = [video1, video2, video3];
+    
+    // Counter to track how many videos have loaded enough to play
+    let videosReady = 0;
+    
+    // Initially pause all videos
+    videos.forEach(video => {
+      video.pause();
+    });
+    
+    // Function to check if all videos are ready to play
+    function checkAllVideosReady() {
+      videosReady++;
+      if (videosReady === 3) {
+        // Reset all videos to start time
+        videos.forEach(video => {
+          video.currentTime = 0;
+          video.style.opacity = 1; // Make videos visible once all are ready
+          video.play();
+        });
+      }
+    }
+    
+    // Listen for the canplaythrough event on each video
+    videos.forEach(video => {
+      // We use canplaythrough instead of loadeddata for better synchronization
+      video.addEventListener('canplaythrough', function handler() {
+        checkAllVideosReady();
+        // Remove the event listener to prevent multiple calls
+        video.removeEventListener('canplaythrough', handler);
+      });
+      
+      // Fallback for videos that might be cached or load very quickly
+      if (video.readyState >= 4) {
+        checkAllVideosReady();
+      }
+    });
+    
+    // Ensure videos stay in sync during playback
+    video1.addEventListener('timeupdate', function() {
+      // Only sync if the time difference is significant (more than 0.1 seconds)
+      if (Math.abs(video2.currentTime - video1.currentTime) > 0.1) {
+        video2.currentTime = video1.currentTime;
+      }
+      if (Math.abs(video3.currentTime - video1.currentTime) > 0.1) {
+        video3.currentTime = video1.currentTime;
+      }
+    });
+    
+    // Handle pause/play to keep videos in sync
+    videos.forEach(video => {
+      video.addEventListener('pause', function() {
+        videos.forEach(v => v.pause());
+      });
+      
+      video.addEventListener('play', function() {
+        videos.forEach(v => {
+          v.currentTime = video.currentTime;
+          v.play();
+        });
+      });
+    });
+  });
+
   // Debug function
   const debug = {
     panel: document.getElementById('debugPanel'),
@@ -1726,25 +1795,6 @@
 
     updatePlayPauseButton();
   }
-
-  // Toggle mute for the 360 video
-  //   function toggleMute() {
-  //     if (!video) return;
-
-  //     isMuted = !isMuted;
-  //     video.muted = isMuted;
-
-  //     muteBtn.innerHTML = isMuted ?
-  //       `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-  //           <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63z"></path>
-  //           <path d="M19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"></path>
-  //           <path d="M4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path>
-  //       </svg> Unmute` :
-  //       `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-  //           <path d="M3 9v6h4l5 5V4L7 9H3z"></path>
-  //           <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"></path>
-  //       </svg> Mute`;
-  //   }
 
   // Reset the camera view
   function resetView() {
