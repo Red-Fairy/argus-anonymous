@@ -270,7 +270,7 @@
               <div class="publication-links">
                 <!-- Arxiv PDF link -->
                 <span class="link-block">
-                  <a href="./static/pdfs/paper.pdf" target="_blank"
+                  <a href="https://red-fairy.github.io/argus/" target="_blank"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">
                       <i class="fas fa-file-pdf"></i>
@@ -596,7 +596,8 @@
             Using a 360° camera, we captured a video of a car driving by while providing our model with a 60°
             horizontal FoV region from a static camera pose (left). The car's ground truth trajectory (middle)
             and our model's predicted trajectory (right) show strong alignment, confirming Argus's ability to
-            accurately interpret scene dynamics.
+            accurately interpret scene dynamics. <strong>Note: if the videos do not play, click either of the three
+              videos will trigger them simultaneously.</strong>
           </p>
         </div>
         <div style="width: 95%; margin: auto;">
@@ -1419,20 +1420,20 @@
 <!-- Replace the existing script with this updated one -->
 <script>
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const video1 = document.getElementById('estimation1');
     const video2 = document.getElementById('estimation2');
     const video3 = document.getElementById('estimation3');
     const videos = [video1, video2, video3];
-    
+
     // Counter to track how many videos have loaded enough to play
     let videosReady = 0;
-    
+
     // Initially pause all videos
     videos.forEach(video => {
       video.pause();
     });
-    
+
     // Function to check if all videos are ready to play
     function checkAllVideosReady() {
       videosReady++;
@@ -1445,7 +1446,7 @@
         });
       }
     }
-    
+
     // Listen for the canplaythrough event on each video
     videos.forEach(video => {
       // We use canplaythrough instead of loadeddata for better synchronization
@@ -1454,15 +1455,15 @@
         // Remove the event listener to prevent multiple calls
         video.removeEventListener('canplaythrough', handler);
       });
-      
+
       // Fallback for videos that might be cached or load very quickly
       if (video.readyState >= 4) {
         checkAllVideosReady();
       }
     });
-    
+
     // Ensure videos stay in sync during playback
-    video1.addEventListener('timeupdate', function() {
+    video1.addEventListener('timeupdate', function () {
       // Only sync if the time difference is significant (more than 0.1 seconds)
       if (Math.abs(video2.currentTime - video1.currentTime) > 0.1) {
         video2.currentTime = video1.currentTime;
@@ -1471,14 +1472,14 @@
         video3.currentTime = video1.currentTime;
       }
     });
-    
+
     // Handle pause/play to keep videos in sync
     videos.forEach(video => {
-      video.addEventListener('pause', function() {
+      video.addEventListener('pause', function () {
         videos.forEach(v => v.pause());
       });
-      
-      video.addEventListener('play', function() {
+
+      video.addEventListener('play', function () {
         videos.forEach(v => {
           v.currentTime = video.currentTime;
           v.play();
